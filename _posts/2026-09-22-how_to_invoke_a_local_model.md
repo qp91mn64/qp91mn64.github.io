@@ -3,7 +3,11 @@ layout: post
 title: "如何用 Python 和 openai 库调用一个本地模型，得到模型回答"
 Author: "qp91mn64"
 Created: "2026-09-22"
+Last_modified: "2026-09-23"
 ---
+
+首次发布：2026-09-22  
+最近更新：2026-09-23
 
 # 如何用 Python 和 openai 库调用一个本地模型，得到模型回答
 
@@ -233,11 +237,11 @@ print("模型回答：", response2.choices[0].message.content)
 
 如果进一步查看终止原因以及 tokens 用量：
 
-```
-终止原因： length
-输入tokens： 24
-输出tokens： 30
-总tokens： 54
+```Python
+print("终止原因：", response2.choices[0].finish_reason)
+print("输入tokens：", response2.usage.prompt_tokens)
+print("输出tokens：", response2.usage.completion_tokens)
+print("总tokens：", response2.usage.total_tokens)
 ```
 
 会得到：
