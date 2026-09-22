@@ -251,6 +251,6 @@ print("模型回答：", response2.choices[0].message.content)
 
 终止的原因是 `'length'`，实际输出 tokens 数量等于设置的最大输出 tokens 数量（30），也能验证模型输出被截断。
 
-## 注释
+## 备注
 
 不会的问 AI；至于代码，参考了 AI 给出的示例。
