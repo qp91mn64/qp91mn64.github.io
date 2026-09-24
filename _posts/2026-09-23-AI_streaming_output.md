@@ -1,17 +1,19 @@
 ---
 layout: post
-title: "让模型流式输出（WIP）"
+title: "让模型流式输出，Python + openai 库实现"
 Author: "qp91mn64"
 Created: "2026-09-23"
+Last Modified: "2026-09-24"
 ---
 
-# 让模型流式输出（WIP）
+# 让模型流式输出，Python + openai 库实现
+
+首次发布：2026-09-23  
+最近更新：2026-09-24
 
 流式输出的核心特点是，能实时看到模型一个字一个字往外吐的过程，不用等半天才能看到模型输出。
 
-这里还是以本地模型 qwen3.5:0.8b 为例，说明如何以流式输出的形式呈现模型内容。
-
-如果不清楚如何调用本地模型，请移步 [如何用 Python 和 openai 库调用一个本地模型，得到模型回答](https://qp91mn64.github.io/2026/09/22/how_to_invoke_a_local_model.html)
+为避免歧义，这里的“模型输出”包括模型思考和最终回答的部分。
 
 ## 打开流式输出
 
@@ -129,7 +131,7 @@ print("完整回答：", full_content)
 
 其中为了拿到模型思考内容，以及确认 `finish_reason`，加了些东西。
 
-得到的结果大概是这样：
+得到的结果大概是这样（不好意思内容有点多）：
 
 ```
 模型终止输出，原因： stop
@@ -146,8 +148,88 @@ That's it! How can I assist you today? 😊
 
 其中“完整思考内容”与“完整回答”看起来都比较自然，除了前者缺少开头，而这也说明同一个 `stream` 里面同一个 `ChatCompletionChunk` 不能被重复遍历两次；`模型终止输出，原因： stop` 一行以及接下来只有一个单独成行的 `stop` 则表明，出现 `stop` 就不会再出现新的内容。
 
+## 实时显示输出
+
+确认能拿到完整输出之后，现在的目标是，一个字一个字地显示。难道一个字一个字地打印即可？就像这样：
+
+```Python
+from openai import OpenAI
+client = OpenAI(base_url="http://localhost:11434/v1", api_key="ollama")
+messages = [{"role": "system", "content": "You are a helpful assistant."},
+            {"role": "user", "content": "Hello World!"}]
+stream = client.chat.completions.create(
+    model="qwen3.5:0.8b",
+    messages=messages,
+    stream=True
+)
+print("模型思考内容：", end="")
+answer = False
+# 加上思考内容，让效果更明显
+# end=""防换行
+for c in stream:
+    d = c.choices[0].delta
+    if hasattr(d, "reasoning"):
+        print(d.reasoning, end="")
+    else:
+        if not answer:
+            print()
+            print("模型回答：", end="")
+            answer = True
+    if d.content:
+        print(d.content, end="")
+```
+
+问题是，如果你把上面的代码复制粘贴为 Python 脚本，再运行，结果是，等了一会儿没任何输出，然后完整的回答突然就出现了，而不是我们想看的一个字一个字地显示的效果。怎么办呢？
+
+接着查资料（问 AI），得到的结果是，这个是输出缓冲问题，解决方案是禁用缓冲：
+
+方案一：如果你用命令行运行 Python 脚本，加个 `-u` 参数：`python -u <your_file_name>.py`。
+
+方案二：在 Python 代码的 `print` 里面设置 `flush=True`。
+
+这两种方案都可以，不过一般用方案二，设置 `flush=True`，这样运行脚本会方便一点：
+
+```Python
+from openai import OpenAI
+client = OpenAI(base_url="http://localhost:11434/v1", api_key="ollama")
+messages = [{"role": "system", "content": "You are a helpful assistant."},
+            {"role": "user", "content": "Hello World!"}]
+stream = client.chat.completions.create(
+    model="qwen3.5:0.8b",
+    messages=messages,
+    stream=True
+)
+print("模型思考内容：", end="", flush=True)
+answer = False
+# 加上思考内容，让效果更明显
+# end=""防换行
+for c in stream:
+    d = c.choices[0].delta
+    if hasattr(d, "reasoning"):
+        print(d.reasoning, end="", flush=True)
+    else:
+        if not answer:
+            print()
+            print("模型回答：", end="", flush=True)
+            answer = True
+    if d.content:
+        print(d.content, end="", flush=True)
+```
+
+你可以自行比较不同方案之间的差异，看一看是否得到了想要的一个字一个字显示的效果。如果现象不够明显，可以尝试更大的模型，例如 `qwen3.5:4b` （注意内存是否足够）。
+
+## 小结
+
+在传消息列表给模型的时候，设置 `stream=True` 即可打开流式输出；
+
+用循环遍历得到的结果，然后从其 `.choices[0].delta` 读取模型思考内容 `reasoning` 和回答 `content`；
+
+在 `print` 里面使用 `flush=True` 来实现逐字显示。
+
 ## 备注
 
-这篇博客没写完，还差如何实时显示模型输出的部分。
+“一个字一个字地显示”是出于行文方便，而不是说，在流式输出模式，每次读取的模型输出都是一个字词。
 
 不会的问 AI；至于代码，参考了 AI 给出的示例。
+
+含有大段的 AI 生成内容：源自 qwen3.5:0.8b。
