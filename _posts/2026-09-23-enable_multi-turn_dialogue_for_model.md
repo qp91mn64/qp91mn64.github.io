@@ -1,11 +1,15 @@
 ---
 layout: post
-title: "与模型多轮对话，Python + openai库实现（WIP）"
+title: "与模型多轮对话，Python + openai库实现"
 Author: "qp91mn64"
 Created: "2026-09-23"
+Last_modified: "2026-09-26"
 ---
 
-# 与模型多轮对话，Python + openai库实现（WIP）
+# 与模型多轮对话，Python + openai库实现
+
+首次发布：2026-09-23
+最近更新：2026-09-26
 
 使用工具：Python，openai，Ollama
 
@@ -225,3 +229,80 @@ $$3 + 2 = 5$$
 个人猜测，对于最后一种情况，如果没有回传第一次输入，模型很可能第二次也回答 `4`。
 
 ## 多轮对话
+
+类似地，每轮对话带上之前所有对话记录即可：
+
+```Python
+from openai import OpenAI
+model = "qwen3.5:0.8b"
+client = OpenAI(base_url = "http://localhost:11434/v1", api_key = "ollama")
+messages = []
+max_rounds = 10;  # 最多对话次数
+for x in range(1, max_rounds + 1):
+    print("--------------------------------第{}轮对话--------------------------------".format(x))
+    user_prompt = {"role": "user", "content": input("输入：".format(x))}
+    messages.append(user_prompt)
+    response = client.chat.completions.create(
+        model=model,
+        messages=messages,
+        reasoning_effort="none"
+    )
+    assistant_message = response.choices[0].message
+    print("模型回复：".format(x))
+    print(assistant_message.content)
+    messages.append(assistant_message)
+```
+
+如果你想用流式输出（参考个人博客：[让模型流式输出](https://qp91mn64.github.io/2026/09/23/AI_streaming_output.html)）：
+
+```Python
+from openai import OpenAI
+model = "qwen3.5:0.8b"
+client = OpenAI(base_url = "http://localhost:11434/v1", api_key = "ollama")
+messages = []
+max_rounds = 10;  # 最多对话次数
+for x in range(1, max_rounds + 1):
+    print("--------------------------------第{}轮对话--------------------------------".format(x))
+    user_prompt = {"role": "user", "content": input("输入：".format(x))}
+    messages.append(user_prompt)
+    stream = client.chat.completions.create(
+        model="qwen3.5:0.8b",
+        messages=messages,
+        stream=True
+    )
+    assistant_reasoning=""
+    assistant_content=""
+    print("模型思考内容：", end="", flush=True)
+    answer = False
+    for c in stream:
+        d = c.choices[0].delta
+        if hasattr(d, "reasoning"):
+            print(d.reasoning, end="", flush=True)
+            assistant_reasoning += d.reasoning
+        else:
+            if not answer:
+                print()
+                print("模型回答：", end="", flush=True)
+                answer = True
+        if d.content:
+            print(d.content, end="", flush=True)
+            assistant_content += d.content
+    assistant_message = {
+        "role": d.role,
+        "reasoning": assistant_reasoning,
+        "content": assistant_content
+    }
+    messages.append(assistant_message)
+    if (x < max_rounds):
+        print()
+```
+
+测试结果是：代码能用；打开思考模式，模型回答质量高一些。
+
+## 备注
+
+一个疑问：模型思考内容要回传吗？
+
+不会的问 AI；至于代码，参考了 AI 给出的示例。
+
+含有大段的 AI 生成内容：源自 qwen3.5:0.8b。
