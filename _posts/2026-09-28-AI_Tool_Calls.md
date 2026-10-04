@@ -3,15 +3,15 @@ layout: post
 title: "如何让模型调用工具，Python + openai 库实现"
 Author: "qp91mn64"
 Created: "2026-09-28"
-Last_Modified: "2026-09-29"
+Last_Modified: "2026-10-04"
 ---
 
 # 如何让模型调用工具，Python + openai 库实现
 
 首次发布：2026-09-28  
-最近更新：2026-09-29
+最近更新：2026-10-04
 
-调用模型：Python 3.12.0，openai 1.109.1，Ollama 0.19.0
+调模型用：Python 3.12.0，openai 1.109.1，Ollama 0.19.0
 
 模型选择：qwen3.5:0.8b，效果不好就换 qwen3.5:2b 或 qwen3.5:4b （这三个模型都基于 Apache 2.0 许可证）
 
@@ -36,6 +36,7 @@ AI 借助工具可以扩展能力范围。要实现工具调用，首先要让 A
 - [回传结果](#回传结果)
   - [回传模型的请求](#回传模型的请求)
   - [回传工具调用结果](#回传工具调用结果)
+- [完整示例代码](#完整示例代码)
 - [改进方向](#改进方向)
 - [不回传请求会怎么样](#不回传请求会怎么样)
 - [小结](#小结)
@@ -550,6 +551,88 @@ else:
 请问您具体想了解哪一方面的信息？
 ```
 
+## 完整示例代码
+
+```Python
+from openai import OpenAI
+import json
+model = "qwen3.5:0.8b"  # 如果效果不好，换个模型试一试，见下文
+print("使用模型：", model)
+client = OpenAI(base_url="http://localhost:11434/v1", api_key="ollama")
+
+# 工具定义
+view_inventory_tool = {
+    "type": "function",
+    "function": {
+        "name": "view_inventory",
+        "description": "查看商店库存",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "item": {
+                    "type": "string",
+                    "description": "商品名称，例如瓶装水，饼干，一次只能查找一种商品"
+                }
+            },
+            "required": ["item"]
+        },
+    },
+}
+tools = [view_inventory_tool]
+
+# 执行工具的代码，不传给模型
+def execute_view_inventory_tool(arguments):
+    """
+    查看商店库存工具执行函数
+    为了简便，这里的数据是杜撰的，只列出部分商品，具体数据请以实际商店为准
+    """
+    inventory = {"饼干": 40, "方便面": 35, "瓶装水": 55, "洗衣粉": 30, "圆珠笔": 50, "牙膏": 35}
+    item = arguments["item"]
+    if item in inventory.keys():
+        if inventory[item] > 0:
+            return "找到库存{}，剩余数量{}。".format(item, inventory[item])
+        else:
+            return "未找到库存{}，请及时补货。".format(item)
+    else:
+        return "本商店不卖{}。".format(item)
+executing_tools = {"view_inventory": execute_view_inventory_tool}
+
+# 消息列表
+messages = [{"role": "system", "content": "你是一家小商店的老板，负责这家商店的经营，目标是保持口碑，留住顾客，获得稳定的利润，让商店能长久地经营下去。目前在售商品有饼干、方便面、瓶装水、圆珠笔、牙膏、洗衣粉。"}, {"role": "user", "content": "现在商店里面还有饼干吗？"}]
+response = client.chat.completions.create(model=model, messages=messages, tools=tools)
+print(response)  # 演示/调试用
+
+# 处理请求，执行工具，回传结果
+tool_calls = response.choices[0].message.tool_calls
+messages.append(response.choices[0].message)  # 回传请求
+for tool_call in tool_calls:
+    name = tool_call.function.name
+    arguments = json.loads(tool_call.function.arguments)
+    result = executing_tools[name](arguments)
+    print("工具id", tool_call.id, "执行结果：", result)  # 演示/调试用
+    tool_message = {
+        "role": "tool",
+        "tool_call_id": tool_call.id,
+        "content": json.dumps(result),
+    }
+    messages.append(tool_message)  # 回传各工具调用结果
+
+# 接着请求模型
+response2 = client.chat.completions.create(model=model, messages=messages, tools=tools)
+assistant_message2 = response2.choices[0].message
+
+# 输出结果
+print("模型思考内容：", assistant_message2.reasoning)
+if (assistant_message2.tool_calls):
+    print("模型发起工具调用请求：", assistant_message2.tool_calls)
+else:
+    print("模型没有发起工具调用请求。")
+if (assistant_message2.content):
+    print("模型回答：", assistant_message2.content)
+else:
+    print("模型没有给出最终回答。")
+```
+
 ## 改进方向
 
 看来至少有两个改进方向：换模型，或者调整工具调用输出结果。
@@ -607,7 +690,7 @@ for tool_call in tool_calls:
 
 ## 不回传请求会怎么样
 
-在示例代码（分散在上下文中，由于篇幅所限，请自行拼接）中找到回传请求的一行：
+在[示例代码](#完整示例代码)中找到回传请求的一行：
 
 ```Python
 messages.append(response.choices[0].message)  # 回传请求
