@@ -5,7 +5,20 @@ author: "qp91mn64"
 created: "2026-11-03"
 ---
 
+<style>
+  .markdown-body img {
+    max-width: min(400px, 100%);
+    height: auto;
+    display: block;
+    margin: 1.25em auto;
+  }
+</style>
+
 # 用AI画几何风格图形
+
+作者：qp91mn64  
+首次发布：2026-11-03  
+最近更新：2026-11-03
 
 说明：这篇文章图片很多，其中除一张截图外，都是AI直接生成的；截图内容包含AI生成图片。
 
@@ -27,7 +40,7 @@ AI能生成几何风格的图？
 
 得到的图片像这样，结果1：
 
-![结果1](/assets/images/20261103_post_images/Qwen_Geometric_1.png)
+[![结果1](/assets/images/20261103_post_images/Qwen_Geometric_1.webp)](/assets/images/20261103_post_images/Qwen_Geometric_1.png)
 
 不太喜欢这种风格，于是修改提示词：
 
@@ -37,7 +50,7 @@ AI能生成几何风格的图？
 
 结果2：
 
-![结果2](/assets/images/20261103_post_images/Qwen_Geometric_2.png)
+[![结果2](/assets/images/20261103_post_images/Qwen_Geometric_2.webp)](/assets/images/20261103_post_images/Qwen_Geometric_2.png)
 
 只有平面图案，就是太单调了。
 
@@ -51,13 +64,13 @@ AI能生成几何风格的图？
 
 结果3，不知道为什么不是1:1的：
 
-![结果3](/assets/images/20261103_post_images/Qwen_Geometric_3.png)
+[![结果3](/assets/images/20261103_post_images/Qwen_Geometric_3.webp)](/assets/images/20261103_post_images/Qwen_Geometric_3.png)
 
 相比之前的结果美观一些，点和线的排列比较好看，不过几何色块的排列有点太规整了，左上角的曲边相互连接，甚至形成了负空间——像一个带三条不规则圆角的矩形；中间三个图块的直边连在一起，好像要把图片分成两部分。
 
 怎么改？对话窗口里面直接写提示词改图？结果没看出多少变化：
 
-![截图1](/assets/images/20261103_post_images/Screenshot_1.png)
+[![截图1](/assets/images/20261103_post_images/Screenshot_1.webp)](/assets/images/20261103_post_images/Screenshot_1.png)
 
 注：已经切换到电脑上操作，所以截图较宽。最后一个AI图细看还是与前面的有点不太一样，不过也没达到预期。
 
@@ -71,7 +84,7 @@ AI能生成几何风格的图？
 
 结果4：
 
-![结果4](/assets/images/20261103_post_images/Qwen_Geometric_4.png)
+[![结果4](/assets/images/20261103_post_images/Qwen_Geometric_4.webp)](/assets/images/20261103_post_images/Qwen_Geometric_4.png)
 
 颜色很不一样，不像上面的风格，不清楚与上下文有没有关联。
 
@@ -83,7 +96,7 @@ AI能生成几何风格的图？
 
 对应结果5：
 
-![结果5](/assets/images/20261103_post_images/Qwen_Geometric_5.png)
+[![结果5](/assets/images/20261103_post_images/Qwen_Geometric_5.webp)](/assets/images/20261103_post_images/Qwen_Geometric_5.png)
 
 改提示词，把颜色用HEX格式列出：
 
@@ -93,7 +106,7 @@ AI能生成几何风格的图？
 
 对应结果6：
 
-![结果6](/assets/images/20261103_post_images/Qwen_Geometric_6.png)
+[![结果6](/assets/images/20261103_post_images/Qwen_Geometric_6.webp)](/assets/images/20261103_post_images/Qwen_Geometric_6.png)
 
 颜色接近了，不过图案排列太几何化，改：
 
@@ -103,7 +116,7 @@ AI能生成几何风格的图？
 
 相应结果7（这次在手机上操作）：
 
-![结果7](/assets/images/20261103_post_images/Qwen_Geometric_7.png)
+[![结果7](/assets/images/20261103_post_images/Qwen_Geometric_7.webp)](/assets/images/20261103_post_images/Qwen_Geometric_7.png)
 
 这个相对美观一点了，但也不是想要的那一种风格，直线只有水平、数值、从右上到左下45度倾斜3种方向。
 
@@ -115,7 +128,7 @@ AI能生成几何风格的图？
 
 相应结果8：
 
-![结果8](/assets/images/20261103_post_images/Qwen_Geometric_8.png)
+[![结果8](/assets/images/20261103_post_images/Qwen_Geometric_8.webp)](/assets/images/20261103_post_images/Qwen_Geometric_8.png)
 
 太几何化了。接着改提示词，加上错误示例：
 
@@ -126,7 +139,7 @@ AI能生成几何风格的图？
 
 相应结果9：
 
-![结果9](/assets/images/20261103_post_images/Qwen_Geometric_9.png)
+[![结果9](/assets/images/20261103_post_images/Qwen_Geometric_9.webp)](/assets/images/20261103_post_images/Qwen_Geometric_9.png)
 
 风格接近结果3了，问题在于，颜色太浅，图案太小，四周又是空的，有点看不清。
 
@@ -135,3 +148,5 @@ AI能生成几何风格的图？
 取色使用 PicPick，原因是，Windows 11 自带截图工具内置取色器，取出颜色之后会吃掉复制未粘贴的提示词，导致提示词不得不重新写，而 PicPick 暂未发现这个问题。
 
 疑问：app里面的“AI生图”功能能指定模型，而网页端没找到指定模型的方式，尚不清楚默认模型，这会不会导致实际使用不止一款模型？
+
+2026-11-03修改：由于图片显示太大，用AI（DeepSeek-V4-Flash-1017, DeepSeek Harness）修了一下，显示的图片用 WebP q95 压缩并限宽，点击查看 PNG 格式的原图；这篇博客所有链接已经更新，并在开头加了样式，其中的`max-width` 徒手改小。至此，这篇博客除了图片，所有的 AI 痕迹是：更新的链接，以及开头的样式设置。
